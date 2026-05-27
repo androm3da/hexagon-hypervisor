@@ -145,6 +145,7 @@ int main(int argc, char **argv)
 	PRINT_KG_OFFSET(angel_lock);
 	PRINT_KG_OFFSET(info_boot_flags);
 	PRINT_KG_OFFSET(dma_version);
+	PRINT_KG_OFFSET(boot_dtb_addr);
 	PRINT_KG_OFFSET(core_id);
 	PRINT_KG_OFFSET(core_count);
 

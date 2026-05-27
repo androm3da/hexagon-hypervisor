@@ -75,6 +75,11 @@ FUNC_START start .entry .p2align 12
 
 .Lpast_mbox:
 
+	// Save device tree address from bootloader
+	// r1:0 can contain the 64-bit physical address of the device tree blob.
+	r6 = add(PC, ##H2K_kg@PCREL)
+	memd(r6+#KG_boot_dtb_addr) = r1:0
+
 #ifdef CRASH_DEBUG
 	r7 = PC
 	jump 3f

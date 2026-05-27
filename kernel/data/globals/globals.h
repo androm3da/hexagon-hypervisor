@@ -190,6 +190,7 @@ typedef struct {
 
 	u32_t hlx_contexts;  
 	u32_t hlx_state;
+	u64_t boot_dtb_addr;
 
 	H2K_mem_alloc_tag_t *alloc_heap;
 	u32_t alloc_heap_size;
