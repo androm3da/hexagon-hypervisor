@@ -53,6 +53,8 @@ typedef enum {
 	INFO_TCM_OFFSET,  /**< Multicore TCM base offset */
 	INFO_NOC_MBASE,   /**< Multicore NOC master widget base */
 	INFO_NOC_SBASE,   /**< Multicore NOC slave widget base */
+	INFO_DTB_ADDR_LO, /**< Device tree blob physical address (low 32 bits) */
+	INFO_DTB_ADDR_HI, /**< Device tree blob physical address (high 32 bits) */
 	INFO_MAX
 } info_type;
 
