@@ -1849,7 +1849,7 @@ This feature enables the VMM to support guests that may only support an older HV
 
 [NOTE]
 ====
-Further communication about the system configuration will likely be beneficial for the guest, but the definition of this feature is TBD.
+Further communication about the system configuration is provided by the <<System Information Interface>>.
 
 The version number associated with the current VM specification is 0x0000_0700.
 ====
@@ -1866,3 +1866,160 @@ h| Instruction h| Description
 |===
 
 For details on these instructions see Appendix A.
+
+[appendix]
+== System Information Interface
+
+=== Overview
+
+HVM provides a system information interface that enables Guest-mode software to query various configuration parameters and runtime information about the virtual machine environment. This interface is accessed through the `h2_info` trap mechanism.
+
+=== Accessing system information
+
+System information is queried using the `trap0(#26)` instruction with the information type specified in R0. The result is returned in R0.
+
+*Syntax*
+
+[source]
+----
+R0 = info_type
+trap0(#26)
+// Result in R0
+----
+
+=== Information types
+
+The table below lists the available system information types.
+
+.System information types
+|===
+h| *Info Type* h| *Value* h| *Description* h| *Return Value*
+
+| INFO_BUILD_ID | 0 | Build identifier | 32-bit build ID
+| INFO_BOOT_FLAGS | 1 | Boot flags | Boot configuration flags (see <<Boot Flags>>)
+| INFO_STLB | 2 | STLB configuration | STLB parameters (see <<STLB Configuration>>)
+| INFO_SYSCFG | 3 | SYSCFG register value | Current SYSCFG value
+| INFO_LIVELOCK | 4 | LIVELOCK register value | Current LIVELOCK value
+| INFO_REV | 5 | Processor revision | REV register value
+| INFO_SSBASE | 6 | Subsystem base address | Physical address of subsystem
+| INFO_TLB_FREE | 7 | Free TLB entries | Number of replaceable TLB entries
+| INFO_TLB_SIZE | 8 | TLB size | Total number of TLB entries
+| INFO_PHYSADDR | 9 | Kernel physical address | Physical load address of kernel
+| INFO_TCM_BASE | 10 | TCM base address | Physical base address of TCM
+| INFO_L2MEM_SIZE | 11 | L2 cache array size | Size of L2 cache in bytes
+| INFO_TCM_SIZE | 12 | TCM size | Size of TCM in bytes
+| INFO_H2K_PGSIZE | 13 | Kernel page size | Page size used by kernel
+| INFO_H2K_NPAGES | 14 | Number of kernel pages | Pages used by kernel image
+| INFO_L2VIC_BASE | 15 | L2VIC base address | Interrupt controller physical address
+| INFO_TIMER_BASE | 16 | Timer base address | Timer physical address
+| INFO_TIMER_INT | 17 | Timer interrupt number | Interrupt number for timer
+| INFO_ERROR | 18 | Kernel error | Last kernel error code
+| INFO_HTHREADS | 19 | Hardware threads mask | Bitmask of running HW threads
+| INFO_L2TAG_SIZE | 20 | L2 cache tag size | Size of L2 cache tags in bytes
+| INFO_L2CFG_BASE | 21 | L2 config base address | L2 configuration registers base
+| INFO_CLADE_BASE | 22 | CLADE base address | CLADE registers base
+| INFO_CFGBASE | 23 | Config base register | cfgbase register value
+| INFO_HVX_VLENGTH | 24 | HVX vector length | Native HVX vector length in bytes
+| INFO_COPROC_CONTEXTS | 25 | Coprocessor contexts | Number of HVX/SILVER contexts
+| INFO_HVX_SWITCH | 26 | HVX context switch | HVX context switch active in kernel
+| INFO_VTCM_BASE | 27 | VTCM base address | Vector TCM base address
+| INFO_VTCM_SIZE | 28 | VTCM size | Vector TCM size in KB
+| INFO_ECC_BASE | 29 | ECC base address | ECC registers base
+| INFO_L2_LINE_SZ | 30 | L2 cache line size | L2 cache line size in bytes
+| INFO_AUDIO_EXT | 31 | Audio extension type | Audio extension identifier
+| INFO_VTCM_BANK_WIDTH | 32 | VTCM bank width | VTCM bank width
+| INFO_L1D_SIZE | 33 | L1 data cache size | L1 data cache size in bytes
+| INFO_MAX_CLUSTER_COPROC | 34 | Max cluster coprocessors | Max coprocessor threads per cluster
+| INFO_HMX_INSTANCES | 35 | HMX instances | Number of HMX instances
+| INFO_CORECFG_BASE | 36 | Core config base | Core configuration registers base
+| INFO_HLX_CONTEXTS | 37 | HLX contexts | Number of HLX instances
+| INFO_UNIT_START | 38 | Unit config start | Start of unit configuration list
+| INFO_UNIT_ENTRY | 39 | Unit config entry | Unit configuration entry (see <<Unit Configuration>>)
+| INFO_CORE_ID | 40 | Core ID | Multicore core identifier
+| INFO_CORE_COUNT | 41 | Core count | Multicore total core count
+| INFO_SHIFT | 42 | Multicore shift | Offset translation for boot VM
+| INFO_TCM_OFFSET | 43 | TCM offset | Multicore TCM base offset
+| INFO_NOC_MBASE | 44 | NOC master base | Multicore NOC master widget base
+| INFO_NOC_SBASE | 45 | NOC slave base | Multicore NOC slave widget base
+| INFO_DTB_ADDR_LO | 46 | DTB address (low) | Low 32 bits of device tree address
+| INFO_DTB_ADDR_HI | 47 | DTB address (high) | High 32 bits of device tree address
+
+|===
+
+[NOTE]
+====
+INFO_HVX_CONTEXTS is an alias for INFO_COPROC_CONTEXTS. INFO_MAX_CLUSTER_HVX is an alias for INFO_MAX_CLUSTER_COPROC.
+====
+
+=== Boot Flags
+
+The INFO_BOOT_FLAGS value returns a 32-bit word with the following bit fields:
+
+.Boot flags bit fields
+|===
+h| *Bit* h| *Name* h| *Description*
+
+| 0 | boot_use_tcm | Hypervisor is running from TCM
+| 1 | boot_have_hvx | Core has HVX extension
+| 2 | boot_have_sample | PC sampling is enabled
+| 3 | boot_ext_ok | Kernel can switch extended contexts
+| 4 | boot_have_dma | Core has user-mode DMA
+| 5 | boot_have_hmx | Core has HMX extension
+| 6 | boot_have_silver | Core has SILVER extension
+| 7 | boot_have_hlx | Core has HLX extension
+| 31:8 | Reserved | Reserved for future use
+
+|===
+
+=== STLB Configuration
+
+The INFO_STLB value returns a 32-bit word with the following bit fields:
+
+.STLB configuration bit fields
+|===
+h| *Bits* h| *Name* h| *Description*
+
+| 7:0 | stlb_max_sets_log2 | Log2 of sets per ASID
+| 15:8 | stlb_max_ways | Number of ways
+| 23:16 | stlb_size | Multiple of sets × ways
+| 30:24 | Reserved | Reserved
+| 31 | stlb_enabled | STLB is enabled
+
+|===
+
+=== Unit Configuration
+
+For architectures v89 and later, hardware unit configuration can be queried using INFO_UNIT_START and INFO_UNIT_ENTRY. INFO_UNIT_START returns the base offset of the unit configuration list. INFO_UNIT_ENTRY queries specific fields of a unit entry.
+
+When using INFO_UNIT_ENTRY, R1 specifies the unit offset and R2 specifies the entry field to query:
+
+.Unit configuration entry fields (R2 values)
+|===
+h| *Value* h| *Field* h| *Description*
+
+| 0 | CFG_UNIT_ID | Unit type identifier
+| 1 | CFG_UNIT_SUBID | Unit subtype identifier
+| 2 | CFG_UNIT_NEXT | Offset to next unit in list
+| 3 | CFG_VXU_UNIT_ID | VXU-specific unit identifier
+| 4 | CFG_HVX_CONTEXTS | HVX context bitmask for this unit
+| 5 | CFG_HLX_CONTEXTS | HLX context bitmask for this unit
+| 6 | CFG_HMX_CONTEXTS | HMX context bitmask for this unit
+| 7 | CFG_HVX_VEC_LENGTH | HVX vector length in bytes
+| 8 | CFG_HLX_REG_LENGTH | HLX register length in bytes
+| 9 | CFG_VTCM_BASE | VTCM base address for this unit
+| 10 | CFG_VTCM_SIZE | VTCM size for this unit
+
+|===
+
+*Example: Iterating unit configuration*
+
+[source,c]
+----
+unsigned int unit = h2_info(INFO_UNIT_START);
+while (unit) {
+    unsigned int unit_id = h2_info_unit(unit, CFG_UNIT_ID);
+    unsigned int hvx_ctx = h2_info_unit(unit, CFG_HVX_CONTEXTS);
+    /* Process unit... */
+    unit = h2_info_unit(unit, CFG_UNIT_NEXT);
+}
+----
