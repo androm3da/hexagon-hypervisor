@@ -199,7 +199,7 @@ unsigned long boot_linux(char fname[]) {
 #endif
 
 	if (h2_vmboot(linux_stext, &linux_vcpu_stacks[0][VCPU_STACK_SIZE - 1],
-								0, LINUX_VM_PRIO, linux_vm) == -1) FAIL("linux vmboot");
+								(unsigned int)h2_info(INFO_DTB_ADDR_LO), LINUX_VM_PRIO, linux_vm) == -1) FAIL("linux vmboot");
 
 	PRINTF ("linux: booted\n");
 #endif

@@ -195,7 +195,13 @@ u32_t H2K_trap_info(info_type op, u32_t unit, h2_cfg_unit_entry entry, H2K_threa
 	
 	case INFO_NOC_SBASE:
 	return H2K_gp->noc_sbase;
-	
+
+	case INFO_DTB_ADDR_LO:
+		return (u32_t)H2K_gp->boot_dtb_addr;
+
+	case INFO_DTB_ADDR_HI:
+		return (u32_t)(H2K_gp->boot_dtb_addr >> 32);
+
 default:
 		return -1;
 	}
