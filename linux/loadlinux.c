@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LINUX_NUM_VCPU 4
 #define UCOS_NUM_VCPU 1
 
 #define TOTAL_INTS 288
@@ -41,7 +40,7 @@ H2K_offset_t linux_offset = {{
 	.pages = (LINUX_OFFSET_ADDR >> PAGE_BITS)
 	}};
 
-unsigned long long int linux_vcpu_stacks[LINUX_NUM_VCPU][VCPU_STACK_SIZE];
+unsigned long long int linux_vcpu_stacks[MAX_HTHREADS][VCPU_STACK_SIZE];
 unsigned long long int ucos_vcpu_stacks[UCOS_NUM_VCPU][VCPU_STACK_SIZE];
 
 #ifdef NO_PRINT
@@ -150,10 +149,15 @@ unsigned long boot_linux(char fname[]) {
 	unsigned long linux_vm = 0;
 
 #ifdef LINUX
+	int num_vcpu = __builtin_popcount(h2_info(INFO_HTHREADS));
+	if (num_vcpu > MAX_HTHREADS) {
+		FAIL("thread count exceeds MAX_HTHREADS");
+	}
+
 	PRINTF("linux: start boot\n");
 
-	linux_vm = vm_setup(LINUX_NUM_VCPU, SHARED_INTS, linux_offset.raw, 0x1, H2K_ASID_TRANS_TYPE_OFFSET);
-	setup_ints(linux_vm, LINUX_NUM_VCPU);
+	linux_vm = vm_setup(num_vcpu, SHARED_INTS, linux_offset.raw, 0x1, H2K_ASID_TRANS_TYPE_OFFSET);
+	setup_ints(linux_vm, num_vcpu);
 	PRINTF("linux: vm set up\n");
 
 #ifndef NO_LOAD
