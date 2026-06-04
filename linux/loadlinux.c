@@ -35,7 +35,7 @@
 #define VM_STATUS_REBOOT 3
 
 H2K_offset_t linux_offset = {{
-	.size = SIZE_4M,
+	.size = SIZE_16M,
 	.cccc = L1WB_L2C,
 	.xwru = URWX,
 	.pages = (LINUX_OFFSET_ADDR >> PAGE_BITS)
