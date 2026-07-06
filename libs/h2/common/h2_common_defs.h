@@ -33,6 +33,11 @@
 #endif
 #endif
 
+#ifdef ALL_HTHREADS
+#undef MAX_HTHREADS
+#define MAX_HTHREADS 16
+#endif
+
 #define SYSCFG_M_BIT 0
 #define SYSCFG_M_LEN 1
 #define SYSCFG_M (((0x1 << SYSCFG_M_LEN) - 1) << SYSCFG_M_BIT)
