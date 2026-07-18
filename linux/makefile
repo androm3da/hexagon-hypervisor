@@ -97,6 +97,10 @@ ifneq ($(NO_LOAD),)
 CFLAGS += -DNO_LOAD
 endif
 
+ifneq ($(SHUTDOWN_AFTER_GUEST_EXIT),)
+CFLAGS += -DSHUTDOWN_AFTER_GUEST_EXIT
+endif
+
 ifneq ($(NO_STLB),)
 CFLAGS += -DNO_STLB
 endif

@@ -346,5 +346,20 @@ int main(int argc, char *argv[]) {
 		h2_vmfree(linux_vm);
 	} while (status == VM_STATUS_REBOOT);
 
+#ifdef SHUTDOWN_AFTER_GUEST_EXIT
+	/*
+	 * Linux is done for good (not rebooting).  Ask H2 to stop this (the
+	 * root, parentless) VM: H2K_thread_stop() recognizes there's no
+	 * parent left to hand control back to and brings the physical
+	 * machine down (stop() on every hw thread) instead of idling
+	 * forever.  Does not return.
+	 *
+	 * Without this build option the guest-exit path falls through to the
+	 * angel SYS_EXIT trap below, which exits a simulator -- but is a no-op
+	 * under NULL_ANGEL_TRAP (e.g. QEMU), leaving the machine spinning.
+	 */
+	h2_vmtrap_stop(status);
+#endif
+
 	return 0; // make gcc happy
 }

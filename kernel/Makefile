@@ -25,6 +25,13 @@ ifdef NULL_ANGEL_TRAP
 CFLAGS += -DNULL_ANGEL_TRAP
 endif
 
+# Bring the physical machine down when the root guest exits.
+# Pulls in NMI_STOP so the idle hw threads woken by the shutdown
+# broadcast execute stop() from the NMI handler.
+ifdef SHUTDOWN_AFTER_GUEST_EXIT
+CFLAGS += -DSHUTDOWN_AFTER_GUEST_EXIT -DNMI_STOP
+endif
+
 ifdef DEBUG
 CFLAGS += -DDEBUG
 endif
