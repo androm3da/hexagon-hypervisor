@@ -34,6 +34,15 @@
 
 #define VM_STATUS_REBOOT 3
 
+/*
+ * Highest physical page Linux may reach, as the base page number of the
+ * last 4MB fence granule.  A varadix leaf entry carries a 22-bit page
+ * number in 4KB granules, so 16GB is the most any guest page table can
+ * name; hand Linux the whole of it and let the memory map in the device
+ * tree decide what is actually populated.
+ */
+#define LINUX_FENCE_HI ((1u << 22) - (1u << 10))
+
 H2K_offset_t linux_offset = {{
 	.size = SIZE_4M,
 	.cccc = L1WB_L2C,
@@ -85,8 +94,7 @@ unsigned long vm_setup(char num_cpus, short num_ints, u32_t trans, unsigned long
 
 	if (pt == H2K_ASID_TRANS_TYPE_OFFSET) {
 		/* Memory map:  0 ... Linux ... frame buffer ... H2 ... boot VM ... ucos */
-		//		ret = h2_config_vmblock_init(vm, SET_FENCES, 0x0, FRAME_BUFFER);
-		ret = h2_config_vmblock_init(vm, SET_FENCES, 0x0, 0xfe000000);
+		ret = h2_config_vmblock_init(vm, SET_FENCES, 0x0, LINUX_FENCE_HI);
 		if (ret != vm) {
 			PRINTF("ret %08x\n", (unsigned int)ret);
 			FAIL("SET_FENCES");

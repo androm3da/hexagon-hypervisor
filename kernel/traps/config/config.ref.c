@@ -215,9 +215,12 @@ static u32_t H2K_config_vmblock_init_set_fences(H2K_vmblock_t *vmblock, u32_t vm
 	H2K_offset_t offset;
 	/* Ensure that fences are at given page boundaries */
 	offset = vmblock->phys_offset;
-	/* EJP: FIXME: should probably be in page numbers anyway to allow >32 bit pa */
-	arg1 >>= PAGE_BITS;
-	arg2 >>= PAGE_BITS;
+	/*
+	 * Fences arrive as page numbers rather than byte addresses so that a
+	 * guest can be given physical memory beyond the 4GB a u32_t byte
+	 * address could name.  The permitted range is compared against
+	 * translated page numbers in H2K_offset_translate() either way.
+	 */
 	if (((arg1|arg2) & ((1<<(2*offset.size))-1)) != 0) return 0;
 	vmblock->fence_lo = arg1;
 	vmblock->fence_hi = arg2;

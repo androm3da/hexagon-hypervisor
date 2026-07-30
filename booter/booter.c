@@ -1116,7 +1116,10 @@ void config_vm(unsigned int idx) {
 	}
 
 	if (trans == H2K_ASID_TRANS_TYPE_OFFSET) {
-		if (h2_config_vmblock_init(vm, SET_FENCES, vm_params[idx].fence_lo, vm_params[idx].fence_hi) != vm) {
+		/* SET_FENCES takes page numbers; booter tracks fences as addresses. */
+		if (h2_config_vmblock_init(vm, SET_FENCES,
+					   vm_params[idx].fence_lo >> PAGE_BITS,
+					   vm_params[idx].fence_hi >> PAGE_BITS) != vm) {
 			FAIL("\tSET_FENCES", "");
 		}
 	}
