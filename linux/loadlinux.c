@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LINUX_NUM_VCPU 4
 #define UCOS_NUM_VCPU 1
 
 #define TOTAL_INTS 288
@@ -50,7 +49,7 @@ H2K_offset_t linux_offset = {{
 	.pages = (LINUX_OFFSET_ADDR >> PAGE_BITS)
 	}};
 
-unsigned long long int linux_vcpu_stacks[LINUX_NUM_VCPU][VCPU_STACK_SIZE];
+unsigned long long int linux_vcpu_stacks[MAX_HTHREADS][VCPU_STACK_SIZE];
 unsigned long long int ucos_vcpu_stacks[UCOS_NUM_VCPU][VCPU_STACK_SIZE];
 
 #ifdef NO_PRINT
@@ -178,12 +177,18 @@ static unsigned long boot_dtb_addr(void) {
 unsigned long boot_linux(char fname[]) {
 
 	unsigned long linux_vm = 0;
+	int num_vcpus;
 
 #ifdef LINUX
 	PRINTF("linux: start boot\n");
 
-	linux_vm = vm_setup(LINUX_NUM_VCPU, SHARED_INTS, linux_offset.raw, 0x1, H2K_ASID_TRANS_TYPE_OFFSET);
-	setup_ints(linux_vm, LINUX_NUM_VCPU);
+	/* One VCPU for every hardware thread that is running. */
+	num_vcpus = __builtin_popcount(h2_info(INFO_HTHREADS) & ((1u << MAX_HTHREADS) - 1));
+	if (num_vcpus == 0) num_vcpus = 1;
+	PRINTF("linux: %d VCPUs\n", num_vcpus);
+
+	linux_vm = vm_setup(num_vcpus, SHARED_INTS, linux_offset.raw, 0x1, H2K_ASID_TRANS_TYPE_OFFSET);
+	setup_ints(linux_vm, num_vcpus);
 	PRINTF("linux: vm set up\n");
 
 #ifndef NO_LOAD
