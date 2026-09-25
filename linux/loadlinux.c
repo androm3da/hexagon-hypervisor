@@ -29,6 +29,13 @@
 #define SHARED_INTS (TOTAL_INTS + 32)
 #define VCPU_STACK_SIZE 1024
 #define LINUX_VM_PRIO 3
+
+/*
+ * The traps that the Linux VM may make: the angel trap (0), and hwconfig,
+ * with which the guest enables and disables the coprocessors (HVX, HMX) for
+ * its hardware thread.  Any other trap is reflected back to the guest.
+ */
+#define LINUX_TRAPMASK ((1u << 0) | (1u << H2_TRAP_HWCONFIG))
 #define UCOS_VM_PRIO 1
 
 #define VM_STATUS_REBOOT 3
@@ -187,7 +194,7 @@ unsigned long boot_linux(char fname[]) {
 	if (num_vcpus == 0) num_vcpus = 1;
 	PRINTF("linux: %d VCPUs\n", num_vcpus);
 
-	linux_vm = vm_setup(num_vcpus, SHARED_INTS, linux_offset.raw, 0x1, H2K_ASID_TRANS_TYPE_OFFSET);
+	linux_vm = vm_setup(num_vcpus, SHARED_INTS, linux_offset.raw, LINUX_TRAPMASK, H2K_ASID_TRANS_TYPE_OFFSET);
 	setup_ints(linux_vm, num_vcpus);
 	PRINTF("linux: vm set up\n");
 
