@@ -27,6 +27,10 @@
  * stop() via the NMI_STOP handler (which this build option pulls in), then
  * stop this hw thread too.  Never returns.
  *
+ * A graceful shutdown reports success: QEMU exits with thread 0's r2 once
+ * every hw thread has stopped, so r2 is zeroed before each stop() -- here
+ * and in the NMI_STOP handler -- whichever thread ends up stopping last.
+ *
  * Deliberately targets MAX_HTHREADS_MASK (every hw thread this build can
  * possibly have started) rather than H2K_gp->hthreads_mask: the latter is
  * a one-shot modectl readback taken right after hwthreads_mask() issues
@@ -35,8 +39,8 @@
  * race, not a complete picture.  NMI-ing a thread that was never started
  * is a harmless no-op.
  */
-static void H2K_hw_shutdown(s32_t status) __attribute__((noreturn));
-static void H2K_hw_shutdown(s32_t status)
+static void H2K_hw_shutdown(void) __attribute__((noreturn));
+static void H2K_hw_shutdown(void)
 {
 	u32_t others_mask = MAX_HTHREADS_MASK & ~(1u << get_hwtnum());
 
@@ -50,9 +54,11 @@ static void H2K_hw_shutdown(s32_t status)
 	for (;;) {
 		asm volatile
 			(
-			 " stop(%0)\n"
+			 " r2 = #0\n"
+			 " stop(r2)\n"
 			 :
-			 : "r"(status)
+			 :
+			 : "r2"
 			 );
 	}
 }
@@ -86,7 +92,7 @@ void H2K_thread_stop(s32_t status, H2K_thread_context *me)
 			H2K_mem_alloc_free(vmblock);
 #ifdef SHUTDOWN_AFTER_GUEST_EXIT
 			BKL_UNLOCK();
-			H2K_hw_shutdown(status);
+			H2K_hw_shutdown();
 			/* NOTREACHED */
 #endif
 		}

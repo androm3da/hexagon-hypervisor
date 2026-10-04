@@ -190,6 +190,9 @@ FUNC_END H2K_fatal_crash
 FUNC_START H2K_handle_nmi .text.vm.error .p2align 2
 #ifdef NMI_STOP
 	r1=##0xe0f0beef
+#ifdef SHUTDOWN_AFTER_GUEST_EXIT
+	r2=#0
+#endif
 	stop(r0)
 #else
 
